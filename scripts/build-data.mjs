@@ -40,6 +40,15 @@ for(const p of P){const ti=p.title,mo=/motogp/i.test(ti)&&!/moto[23]/i.test(ti),
  else if(/(europa|conference) league/i.test(ti)&&/sky/i.test(p.ch)&&p.min>=90&&p.min<=200&&!/magazine|studio|highlights|replay|differita|gol/i.test(ti)&&!dd.has(ti+p.t)){
   const tm=ti.replace(/^[^:]*:\s*/,'').split(/\s+[-–]\s+|-/).map(s=>s.trim());
   if(tm.length==2){dd.add(ti+p.t);tv.push({id:'u'+slug(ti)+p.t,day:day(p.t),time:hm(p.t),kind:'sport',comp:/conference/i.test(ti)?'Conference League':'Europa League',title:tm.join(' - '),teams:tm,channel:p.ch,big:tm.some(x=>BIG.test(x))})}}}
+// SVIZZERA: Super League, Promotion League e Coppa Svizzera (Lugano, Bellinzona) da TheSportsDB
+const TS='https://www.thesportsdb.com/api/v1/json/123',CHC={'swiss super league':['Super League','blue Sport o RSI'],'swiss promotion league':['Promotion League','Da verificare'],'swiss cup':['Coppa Svizzera','Da verificare']};let nCH=0;
+teams.add('Lugano');teams.add('Bellinzona');
+for(const l of(await safe('leghe CH',()=>get(TS+'/all_leagues.php'),{leagues:[]})).leagues||[]){const c=CHC[(l.strLeague||'').toLowerCase()];if(l.strSport!='Soccer'||!c)continue;
+ for(const m of(await safe(l.strLeague,()=>get(`${TS}/eventsnextleague.php?id=${l.idLeague}`),{events:[]})).events||[]){
+  teams.add(m.strHomeTeam);teams.add(m.strAwayTeam);
+  const t=Date.parse((m.strTimestamp||`${m.dateEvent}T${m.strTime||'00:00:00'}`).replace(/Z?$/,'Z'));if(!(t>=t0-36e5&&t<t1))continue;
+  nCH++;tv.push({id:'c'+m.idEvent,day:day(t),time:hm(t),kind:'sport',comp:c[0],title:`${m.strHomeTeam} - ${m.strAwayTeam}`,teams:[m.strHomeTeam,m.strAwayTeam],channel:c[1]})}}
+console.log('Svizzera, partite nei prossimi 7 giorni:',nCH);
 // GENERI TMDB
 const gm={};if(TMDB_KEY)for(const k of['movie','tv'])(await safe('generi',()=>T(`/genre/${k}/list`),{genres:[]})).genres.forEach(g=>gm[g.id]=g.name);
 const X={'Action & Adventure':['Azione','Avventura'],'Sci-Fi & Fantasy':['Fantascienza','Fantasy']},gn=ids=>(ids||[]).flatMap(i=>X[gm[i]]||[gm[i]]).filter(Boolean);
