@@ -1,0 +1,87 @@
+<!doctype html><html lang="it"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Cosa guardo?</title>
+<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0c2b3e">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Cosa guardo?"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" href="icons/icon-192.png">
+<style>
+:root{--bg:#0c2b3e;--sf:#123b52;--ln:#ffffff24;--tx:#f3f7f9;--mu:#8fb0c0;--ac:#ffd23f;--rs:#ff7a6b;color-scheme:dark}
+*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--tx);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:env(safe-area-inset-top) 0 calc(96px + env(safe-area-inset-bottom))}
+main{max-width:620px;margin:auto;padding:20px 16px}
+h1{font-size:34px;font-weight:800;letter-spacing:-1.2px;line-height:1}
+h2{font-size:19px;font-weight:700;margin:28px 0 6px;letter-spacing:-.3px}
+h2 small{font-weight:600;margin-left:6px}
+.sub,small,.em{color:var(--mu)}.sub{margin-top:6px;text-transform:capitalize}
+.days{display:flex;gap:8px;overflow-x:auto;margin:18px -16px 0;padding:0 16px;scrollbar-width:none}.days::-webkit-scrollbar{display:none}
+.chip,.days button{flex:none;border:1.5px solid var(--ln);background:none;color:var(--tx);padding:9px 16px;border-radius:99px;font:inherit;font-weight:600;cursor:pointer;transition:background .15s,transform .15s}
+.chip.on,.days .on{background:var(--ac);border-color:var(--ac);color:#10202b}.chip.no{border-color:var(--rs);color:var(--rs);text-decoration:line-through}
+.row{display:flex;flex-wrap:wrap;gap:8px}
+.card{display:flex;gap:14px;background:var(--sf);border-radius:22px;padding:14px;margin:10px 0}
+.card img{width:88px;height:132px;object-fit:cover;border-radius:12px;flex:none;background:#0003}
+.b{flex:1;min-width:0}
+.sp{align-items:center;border-radius:14px;padding:12px 14px}.sp.fv{box-shadow:inset 4px 0 var(--rs)}
+.t,.tm{font-weight:800;letter-spacing:-1px;font-variant-numeric:tabular-nums;color:var(--ac)}.t{font-size:28px;min-width:76px}.tm{font-size:22px}.tm small{font-size:13px;letter-spacing:0;margin-left:8px;font-weight:600}
+h3{font-size:17px;line-height:1.2;margin:3px 0 2px}
+.mt span{margin-right:12px;font-size:13px;color:var(--mu)}
+p{font-size:13.5px;color:#d5e3ea;margin:6px 0;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}p.open{display:block}
+.pill{display:inline-block;font-size:12px;font-weight:700;padding:3px 10px;border-radius:99px;background:#ffffff1c;margin:0 6px 4px 0}.pill.new{background:var(--ac);color:#10202b}
+.act{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.act button,.act a{border:1.5px solid var(--ln);background:none;color:var(--tx);font-family:inherit;font-size:12.5px;font-weight:600;padding:7px 11px;border-radius:99px;text-decoration:none;cursor:pointer;transition:background .15s,transform .15s}
+.act .on{background:var(--rs);border-color:var(--rs);color:#2a0d09;transform:scale(1.05)}
+nav{position:fixed;left:14px;right:14px;bottom:calc(12px + env(safe-area-inset-bottom));max-width:440px;margin:auto;display:flex;background:var(--sf);border:1px solid var(--ln);border-radius:28px;padding:6px}nav[hidden]{display:none}
+nav button{flex:1;border:0;background:0;color:var(--mu);font:inherit;font-size:12px;font-weight:600;padding:8px;border-radius:22px;cursor:pointer}nav svg{display:block;margin:0 auto 2px}nav .on{background:#ffffff14;color:var(--ac)}
+input{width:100%;margin:10px 0;padding:13px 15px;border-radius:14px;border:1.5px solid var(--ln);background:none;color:var(--tx);font:inherit}
+.go{position:sticky;bottom:calc(16px + env(safe-area-inset-bottom));width:100%;border:0;border-radius:18px;padding:16px;margin-top:24px;font:inherit;font-size:16px;font-weight:800;color:#10202b;background:var(--ac)}
+.demo{background:#ffd23f22;border:1px solid #ffd23f66;border-radius:14px;padding:10px 12px;font-size:13px;margin-top:14px}
+</style></head><body><div id=app></div><nav id=nav hidden></nav><script>
+const $=s=>document.querySelector(s),e=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])),lc=s=>s.toLowerCase();
+const TM=['Inter','Milan','Juventus','Napoli','Roma','Lazio','Atalanta','Fiorentina','Bologna','Torino','Arsenal','Man City','Liverpool','Chelsea','Man United','Tottenham','Newcastle','Aston Villa'];
+const GE=['Azione','Commedia','Dramma','Thriller','Fantascienza','Horror','Animazione','Documentario','Crime','Romance','Fantasy','Mistero'];
+const IC={tv:'<rect x=3 y=5 width=18 height=12 rx=2 /><path d="M8 21h8"/>',vod:'<circle cx=12 cy=12 r=9 /><path d="M10 8.5v7l5.5-3.5z"/>',me:'<circle cx=12 cy=8 r=4 /><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/>'};
+const S=Object.assign({teams:['Inter'],love:[],no:[],g:{},m:{},ok:0},JSON.parse(localStorage.cg||'{}'));
+const save=()=>localStorage.cg=JSON.stringify(S);
+let D={tv:[],vod:[],teams:[]},tab='tv',day=0;
+const fav=x=>(x.teams||[]).some(a=>S.teams.some(b=>lc(a).includes(lc(b))||lc(b).includes(lc(a))));
+const bl=x=>(x.genres||[]).some(g=>S.no.includes(g)),vis=x=>!/[sn]/.test(S.m[x.id]||'')&&!bl(x);
+const aff=x=>{const g=x.genres||[];if(!g.length)return .5;const v=g.reduce((s,k)=>s+(S.love.includes(k)?1:0)+Math.max(-1,Math.min(1,(S.g[k]||0)/4)),0)/g.length;return Math.max(0,Math.min(1,.5+v/2))};
+const learn=(x,w)=>(x.genres||[]).forEach(g=>S.g[g]=(S.g[g]||0)+w);
+const chips=q=>{const all=[...new Set([...S.teams,...TM,...(D.teams||[])])],l=q?all.filter(t=>lc(t).includes(lc(q))).slice(0,16):[...new Set([...S.teams,...TM])].slice(0,16);return l.map(t=>`<button class="chip ${S.teams.includes(t)?'on':''}" data-a=team data-v="${e(t)}">${e(t)}</button>`).join('')};
+const setup=()=>`<main><h1>Cosa guardo?</h1><div class=sub style="text-transform:none">${S.ok?'I tuoi gusti':'Due scelte e sei dentro.'}</div>
+<h2>Le tue squadre <small id=cnt>${S.teams.length}/5</small></h2><input id=qs placeholder="Cerca una squadra" autocomplete=off><div class=row id=tl>${chips('')}</div>
+<h2>Generi <small>tocca per amare, ancora per escludere</small></h2><div class=row>${GE.map(g=>`<button class="chip ${S.love.includes(g)?'on':S.no.includes(g)?'no':''}" data-a=gen data-v="${g}">${g}</button>`).join('')}</div>
+${S.ok?'<button class=chip data-a=reset style="margin-top:24px">Mostra di nuovo i titoli nascosti</button>':''}
+<button class=go data-a=go>${S.ok?'Salva':'Inizia'}</button></main>`;
+const sc=x=>`<div class="card sp ${fav(x)?'fv':''}"><div class=t>${e(x.time)}</div><div class=b><h3>${e(x.title)}</h3><small>${e(x.comp)} su ${e(x.channel)}</small></div></div>`;
+const mc=(x,tv)=>{const m=S.m[x.id],q=encodeURIComponent(`${x.title} ${x.year||''} trailer ufficiale italiano`),nw=x.date&&Date.now()-Date.parse(x.date)<=30*864e5;
+return `<div class=card>${x.poster?`<img src="${e(x.poster)}" loading=lazy alt="">`:''}<div class=b>${tv?`<div class=tm>${e(x.time)}<small>${e(x.channel)}</small></div>`:''}${nw?'<span class="pill new">Novità</span>':''}${(x.prov||[]).map(p=>`<span class=pill>${e(p)}</span>`).join('')}
+<h3>${e(x.title)}</h3><div class=mt>${[x.year,x.rating?'★ '+x.rating:'',(x.genres||[]).slice(0,2).join(', ')].filter(Boolean).map(s=>`<span>${e(s)}</span>`).join('')}</div>${x.plot?`<p data-a=x>${e(x.plot)}</p>`:''}
+<div class=act><button data-a=l data-id="${e(x.id)}" class="${m=='l'?'on':''}">♥ Mi interessa</button><button data-a=s data-id="${e(x.id)}">Già visto</button><button data-a=n data-id="${e(x.id)}">Non mi interessa</button><a href="https://www.youtube.com/results?search_query=${q}" target=_blank rel=noopener>▶ Trailer</a></div></div></div>`};
+const demoBox=()=>D.demo?'<div class=demo>Dati di esempio: il job non ha ancora creato data/dati.json.</div>':'';
+function tvView(){const ds=[...Array(7)].map((_,i)=>new Date(Date.now()+i*864e5)),k=ds[day].toLocaleDateString('sv'),it=D.tv.filter(x=>x.day==k),seen=new Set();
+const top=(kind,n)=>it.filter(x=>x.kind==kind&&vis(x)).sort((a,b)=>(b.score||0)+3*aff(b)-(a.score||0)-3*aff(a)).filter(x=>!seen.has(x.id)&&seen.add(x.id)).slice(0,n).sort((a,b)=>a.time<b.time?-1:1);
+const sp=it.filter(x=>x.kind=='sport'&&(/F1|MotoGP/.test(x.comp)||fav(x)||x.big)).sort((a,b)=>a.time<b.time?-1:1),fi=top('film',2),sh=top('show',2),sec=(t,l,f)=>l.length?`<h2>${t}</h2>${l.map(f).join('')}`:'';
+return `<main><h1>Cosa guardo?</h1><div class=sub>${ds[day].toLocaleDateString('it',{weekday:'long',day:'numeric',month:'long'})}</div>${demoBox()}
+<div class=days>${ds.map((d,i)=>`<button data-a=day data-v=${i} class="${i==day?'on':''}">${['Oggi','Domani'][i]||d.toLocaleDateString('it',{weekday:'short',day:'numeric'})}</button>`).join('')}</div>
+${sec('Sport',sp,sc)}${sec('Film in diretta',fi,x=>mc(x,1))}${sec('Programmi di punta',sh,x=>mc(x,1))}${sp.length+fi.length+sh.length?'':'<p class=em style="margin-top:30px;display:block">Niente di imperdibile in questo giorno.</p>'}</main>`}
+function vodView(){const age=x=>(Date.now()-Date.parse(x.date))/864e5,list=t=>{const mx=Math.max(1,...D.vod.filter(x=>x.type==t).map(x=>x.pop));return D.vod.filter(x=>x.type==t&&vis(x)).map(x=>[x,.45*x.pop/mx+.35*aff(x)+.15*(age(x)<=30?1:age(x)<=90?.5:0)]).sort((a,b)=>b[1]-a[1]).slice(0,5).map(o=>mc(o[0])).join('')||'<p class=em style="display:block">Hai visto tutto, torna domani.</p>'};
+return `<main><h1>On demand</h1><div class=sub style="text-transform:none">Le novità più in vista, scelte per te</div>${demoBox()}<h2>Film</h2>${list('film')}<h2>Serie TV</h2>${list('serie')}</main>`}
+function render(f){$('#nav').hidden=!S.ok;$('#nav').innerHTML=[['tv','In TV'],['vod','On demand'],['me','Tu']].map(([k,l])=>`<button data-a=tab data-v=${k} class="${tab==k?'on':''}"><svg viewBox="0 0 24 24" width=22 height=22 fill=none stroke=currentColor stroke-width=2 stroke-linecap=round stroke-linejoin=round>${IC[k]}</svg>${l}</button>`).join('');
+$('#app').innerHTML=!S.ok||tab=='me'?setup():tab=='tv'?tvView():vodView();if(f)scrollTo(0,0)}
+function act(id,a){const x=[...D.tv,...D.vod].find(i=>i.id==id)||{};if(a=='l'&&S.m[id]=='l'){delete S.m[id];learn(x,-1)}else{S.m[id]=a;learn(x,a=='l'?1:a=='n'?-1:0)}save();render()}
+document.onclick=ev=>{const b=ev.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,v=b.dataset.v;
+if(a=='team'){const i=S.teams.indexOf(v);if(i>=0)S.teams.splice(i,1);else if(S.teams.length<5)S.teams.push(v);else{$('#cnt').style.color='var(--rs)';return}$('#tl').innerHTML=chips($('#qs').value);$('#cnt').textContent=S.teams.length+'/5';$('#cnt').style.color=''}
+else if(a=='gen'){const l=S.love.includes(v),n=S.no.includes(v);S.love=S.love.filter(x=>x!=v);S.no=S.no.filter(x=>x!=v);if(!l&&!n)S.love.push(v);else if(l)S.no.push(v);b.className='chip '+(S.love.includes(v)?'on':S.no.includes(v)?'no':'')}
+else if(a=='go'){S.ok=1;tab='tv';render(1)}else if(a=='tab'){tab=v;render(1)}else if(a=='day'){day=+v;render(1)}
+else if(a=='x')b.classList.toggle('open');else if(a=='reset'){S.m={};b.textContent='Fatto'}else{act(b.dataset.id,a);return}save()};
+document.oninput=ev=>{if(ev.target.id=='qs')$('#tl').innerHTML=chips(ev.target.value)};
+const demo=()=>{const d=n=>new Date(Date.now()+n*864e5).toLocaleDateString('sv');return{demo:1,teams:[],tv:[
+{id:'a',day:d(0),time:'20:45',kind:'sport',comp:'Serie A',title:'Inter - Napoli',teams:['Inter','Napoli'],channel:'Sky Sport'},
+{id:'b',day:d(0),time:'15:00',kind:'sport',comp:'F1',title:'Gara',channel:'Sky Sport F1'},
+{id:'c',day:d(0),time:'21:20',kind:'film',title:'Il Gladiatore',year:2000,rating:8.2,genres:['Azione','Dramma'],plot:'Un generale romano tradito diventa gladiatore per vendicare la sua famiglia.',channel:'Rete 4',score:9},
+{id:'e',day:d(0),time:'21:20',kind:'show',title:'Le Iene',channel:'Italia 1',plot:'Inchieste e servizi del magazine di Italia 1.',score:9.8}],
+vod:[{id:'v1',type:'film',title:'Film di esempio',year:2026,date:d(-10),rating:7.4,genres:['Thriller'],plot:'Titolo di esempio, comparirà con i dati veri.',prov:['Netflix'],pop:100},{id:'v2',type:'serie',title:'Serie di esempio',year:2026,date:d(-40),rating:8.1,genres:['Dramma'],plot:'Titolo di esempio.',prov:['Disney+'],pop:80}]}};
+fetch('data/dati.json',{cache:'no-cache'}).then(r=>r.json()).catch(demo).then(d=>{D=d;render(1)});
+if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js');
+</script></body></html>
