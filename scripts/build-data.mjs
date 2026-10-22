@@ -11,13 +11,16 @@ const dec=s=>s.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').r
 const attr=(s,k)=>(s.match(new RegExp(k+'="([^"]*)"'))||[])[1]||'';
 const tag=(s,k)=>{const m=s.match(new RegExp('<'+k+'[^>]*>([^<]*)</'+k+'>'));return m?dec(m[1]):''};
 const ts=s=>Date.parse(`${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6,8)}T${s.slice(8,10)}:${s.slice(10,12)}:${s.slice(12,14)}${s.slice(15,18)||'+00'}:${s.slice(18,20)||'00'}`);
-async function epg(cc,keep){const buf=await get(`https://epg.lat/files/${cc}.xml.gz`,{headers:{'User-Agent':'Mozilla/5.0'}},1),xml=(buf[0]==0x1f&&buf[1]==0x8b?gunzipSync(buf):buf).toString('utf8'),ch={},out=[];if(!xml.includes('<programme'))throw Error('risposta non XMLTV: '+xml.slice(0,80));
+const T2=s=>{const v=ts(s);return isNaN(v)?Date.parse(s):v};
+async function epg(url,keep){const buf=await get(url,{headers:{'User-Agent':'Mozilla/5.0'}},1),xml=(buf[0]==0x1f&&buf[1]==0x8b?gunzipSync(buf):buf).toString('utf8'),ch={},out=[];let n=0,first='',last='';
+ if(!xml.includes('<programme'))throw Error('risposta non XMLTV: '+xml.slice(0,80));
  for(const m of xml.matchAll(/<channel id="([^"]+)"[^>]*>([\s\S]*?)<\/channel>/g))ch[m[1]]=tag(m[2],'display-name');
- for(const m of xml.matchAll(/<programme ([^>]*)>([\s\S]*?)<\/programme>/g)){const c=ch[attr(m[1],'channel')]||'';if(keep&&!keep.test(c))continue;
-  const t=ts(attr(m[1],'start')),e=ts(attr(m[1],'stop'));if(!(t>=t0-36e5&&t<t1))continue;
+ for(const m of xml.matchAll(/<programme ([^>]*)>([\s\S]*?)<\/programme>/g)){n++;const c=ch[attr(m[1],'channel')]||attr(m[1],'channel');if(keep&&!keep.test(c))continue;
+  const s=attr(m[1],'start'),t=T2(s),e=T2(attr(m[1],'stop'));if(!first)first=s;last=s;if(!(t>=t0-36e5&&t<t1))continue;
   out.push({ch:c,t,min:(e-t)/6e4,title:tag(m[2],'title'),desc:tag(m[2],'desc'),cat:[...m[2].matchAll(/<category[^>]*>([^<]*)/g)].map(x=>dec(x[1])).join('|'),year:+tag(m[2],'date').slice(0,4)||0})}
- return out}
-const P=[...await safe('EPG IT',()=>epg('it'),[]),...await safe('EPG CH',()=>epg('ch',/\bRSI\b/i),[])];
+ console.log(url,'canali',Object.keys(ch).length,'programmi',n,'in finestra',out.length,'primo',first,'ultimo',last);return out}
+const getEpg=async(urls,keep)=>{for(const u of urls){const r=await safe(u,()=>epg(u,keep),[]);if(r.length)return r}return[]};
+const P=[...await getEpg(['https://epg.lat/files/it.xml.gz','https://epgshare01.online/epgshare01/epg_ripper_IT1.xml.gz']),...await getEpg(['https://epg.lat/files/ch.xml.gz'],/\bRSI\b/i)];
 console.log('Programmi in guida:',P.length);
 const T=(p,x='')=>{const b=TMDB_KEY.length>40;return get(`https://api.themoviedb.org/3${p}?language=it-IT${x}${b?'':'&api_key='+TMDB_KEY}`,b?{headers:{Authorization:'Bearer '+TMDB_KEY}}:{})};
 const IMG='https://image.tmdb.org/t/p/w342',tv=[],teams=new Set();
