@@ -43,9 +43,15 @@ for(const p of P){const ti=p.title,mo=/motogp/i.test(ti)&&!/moto[23]/i.test(ti),
 // SVIZZERA: Super League, Promotion League e Coppa Svizzera (Lugano, Bellinzona) da TheSportsDB
 const TS='https://www.thesportsdb.com/api/v1/json/123',CHC={'swiss super league':['Super League','blue Sport o RSI'],'swiss promotion league':['Promotion League','Da verificare'],'swiss cup':['Coppa Svizzera','Da verificare']};let nCH=0;
 teams.add('Lugano');teams.add('Bellinzona');
-for(const l of(await safe('leghe CH',()=>get(TS+'/all_leagues.php'),{leagues:[]})).leagues||[]){const c=CHC[(l.strLeague||'').toLowerCase()];if(l.strSport!='Soccer'||!c)continue;
- for(const m of(await safe(l.strLeague,()=>get(`${TS}/eventsnextleague.php?id=${l.idLeague}`),{events:[]})).events||[]){
-  teams.add(m.strHomeTeam);teams.add(m.strAwayTeam);
+const all=(await safe('leghe CH',()=>get(TS+'/all_leagues.php'),{leagues:[]})).leagues||[];
+console.log('Leghe TheSportsDB:',all.length,'| svizzere:',all.filter(l=>/swiss|switz/i.test(l.strLeague)).map(l=>`${l.strLeague}=${l.idLeague}(${l.strSport})`).join(', '));
+const sw=all.filter(l=>l.strSport=='Soccer'&&CHC[(l.strLeague||'').toLowerCase()]);
+if(!sw.some(l=>l.idLeague=='5319'))sw.push({idLeague:'5319',strLeague:'Swiss Promotion League'});
+for(const l of sw){const c=CHC[l.strLeague.toLowerCase()];
+ let ev=(await safe(l.strLeague,()=>get(`${TS}/eventsseason.php?id=${l.idLeague}&s=2026-2027`),{events:[]})).events||[];
+ if(!ev.length)ev=(await safe(l.strLeague,()=>get(`${TS}/eventsnextleague.php?id=${l.idLeague}`),{events:[]})).events||[];
+ console.log(l.strLeague,l.idLeague,'eventi',ev.length,'primo',ev[0]?.dateEvent,'ultimo',ev[ev.length-1]?.dateEvent);
+ for(const m of ev){teams.add(m.strHomeTeam);teams.add(m.strAwayTeam);
   const t=Date.parse((m.strTimestamp||`${m.dateEvent}T${m.strTime||'00:00:00'}`).replace(/Z?$/,'Z'));if(!(t>=t0-36e5&&t<t1))continue;
   nCH++;tv.push({id:'c'+m.idEvent,day:day(t),time:hm(t),kind:'sport',comp:c[0],title:`${m.strHomeTeam} - ${m.strAwayTeam}`,teams:[m.strHomeTeam,m.strAwayTeam],channel:c[1]})}}
 console.log('Svizzera, partite nei prossimi 7 giorni:',nCH);
