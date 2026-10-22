@@ -11,7 +11,7 @@ const dec=s=>s.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').r
 const attr=(s,k)=>(s.match(new RegExp(k+'="([^"]*)"'))||[])[1]||'';
 const tag=(s,k)=>{const m=s.match(new RegExp('<'+k+'[^>]*>([^<]*)</'+k+'>'));return m?dec(m[1]):''};
 const ts=s=>Date.parse(`${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6,8)}T${s.slice(8,10)}:${s.slice(10,12)}:${s.slice(12,14)}${s.slice(15,18)||'+00'}:${s.slice(18,20)||'00'}`);
-async function epg(cc,keep){const xml=gunzipSync(await get(`https://epg.lat/files/${cc}.xml.gz`,{},1)).toString('utf8'),ch={},out=[];
+async function epg(cc,keep){const buf=await get(`https://epg.lat/files/${cc}.xml.gz`,{headers:{'User-Agent':'Mozilla/5.0'}},1),xml=(buf[0]==0x1f&&buf[1]==0x8b?gunzipSync(buf):buf).toString('utf8'),ch={},out=[];if(!xml.includes('<programme'))throw Error('risposta non XMLTV: '+xml.slice(0,80));
  for(const m of xml.matchAll(/<channel id="([^"]+)"[^>]*>([\s\S]*?)<\/channel>/g))ch[m[1]]=tag(m[2],'display-name');
  for(const m of xml.matchAll(/<programme ([^>]*)>([\s\S]*?)<\/programme>/g)){const c=ch[attr(m[1],'channel')]||'';if(keep&&!keep.test(c))continue;
   const t=ts(attr(m[1],'start')),e=ts(attr(m[1],'stop'));if(!(t>=t0-36e5&&t<t1))continue;
